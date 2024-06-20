@@ -1,6 +1,7 @@
 import 'package:drift_db_viewer/drift_db_viewer.dart';
 import 'package:drift_practice/database.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,14 +38,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
+  final executionLogs = <String>[];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,24 +46,49 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              SizedBox(
+                child: ListView(
+                  children: [
+                    if (executionLogs.isEmpty)
+                      const Text('ここに操作ログが表示されます')
+                    else
+                      for (final log in executionLogs) Text(log),
+                  ],
+                ),
+              ),
+              const Gap(16),
+              ElevatedButton(
+                onPressed: () {
+                  final db = AppDatabase.singleton();
+                  // db.managers.todoCategory
+                  //     .create((e) => e(description: '', id: '1'));
+                },
+                child: const Text('全データ消去'),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        onPressed: _handleOnPressedFAB,
+        tooltip: 'drift_db_viewerを表示',
+        child: const Icon(Icons.search),
+      ),
+    );
+  }
+
+  void _handleOnPressedFAB() {
+    final db = AppDatabase.singleton();
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (context) {
+          return DriftDbViewer(db);
+        },
       ),
     );
   }
