@@ -1,5 +1,7 @@
+import 'package:drift/drift.dart' hide Column;
 import 'package:drift_db_viewer/drift_db_viewer.dart';
 import 'package:drift_practice/database.dart';
+import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -38,41 +40,104 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final executionLogs = <String>[];
+  final _faker = Faker();
+  final _executionLogs = <String>[];
+  final _driftDb = AppDatabase.singleton();
+  final _logScrollController = ScrollController();
+  var _isExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _logScrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.expand),
+              onPressed: () {
+                setState(
+                  () {
+                    _isExpanded = !_isExpanded;
+                  },
+                );
+              }),
+        ],
       ),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(
-                child: ListView(
-                  children: [
-                    if (executionLogs.isEmpty)
-                      const Text('ここに操作ログが表示されます')
-                    else
-                      for (final log in executionLogs) Text(log),
-                  ],
-                ),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+              child: SizedBox(
+            height: MediaQuery.sizeOf(context).height * (_isExpanded ? 1 : 0.5),
+            child: ListView(
+              controller: _logScrollController,
+              children: [
+                if (_executionLogs.isEmpty)
+                  const ListTile(
+                    title: Text('ここに実行ログが表示されます'),
+                  ),
+                for (final (index, log) in _executionLogs.indexed)
+                  ListTile(
+                    title: Text(
+                      '[${index.toString().padLeft(2, '0')}] --> $log',
+                      style: TextStyle(
+                          color:
+                              log.contains('成功') ? Colors.green : Colors.red),
+                    ),
+                  ),
+              ],
+            ),
+          )),
+          const SliverToBoxAdapter(child: Divider()),
+          if (!_isExpanded)
+            SliverFillRemaining(
+              child: ListView(
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _createRandomTodoItems();
+                    },
+                    child: const Text('ランダムなTodoItemsを追加'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _createRandomTodoCategory();
+                    },
+                    child: const Text('ランダムなTodoCategoryを追加'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _createTodoItemsRelatedTodoCategory();
+                    },
+                    child: const Text('任意のTodoCategoryに紐づくTodoItemsを追加'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _deleteAllRecords();
+                    },
+                    child: const Text('全テーブルのレコードを削除'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      _removeLogs();
+                    },
+                    child: const Text('ログをクリア'),
+                  ),
+                ],
               ),
-              const Gap(16),
-              ElevatedButton(
-                onPressed: () {
-                  final db = AppDatabase.singleton();
-                  // db.managers.todoCategory
-                  //     .create((e) => e(description: '', id: '1'));
-                },
-                child: const Text('全データ消去'),
-              ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _handleOnPressedFAB,
@@ -80,6 +145,62 @@ class _MyHomePageState extends State<MyHomePage> {
         child: const Icon(Icons.search),
       ),
     );
+  }
+
+  /// 全テーブルのレコードを削除
+  Future<void> _deleteAllRecords() async {
+    await _tryFunc(
+      actionName: '全テーブルのレコードを削除',
+      func: () async {
+        return await Future.wait(
+          [
+            _driftDb.managers.todoItems.delete(),
+            _driftDb.managers.todoCategory.delete(),
+          ],
+        );
+      },
+    );
+  }
+
+  /// ランダムなTodoCategoryを追加
+  Future<void> _createRandomTodoCategory() async {
+    await _tryFunc(
+      actionName: 'ランダムなTodoCategoryを追加',
+      func: () async {
+        final TodoCategoryData record =
+            await _driftDb.managers.todoCategory.createReturning(
+          (e) => e(description: _faker.lorem.word()),
+          mode: InsertMode.insertOrReplace,
+        );
+        return record.toJsonString();
+      },
+    );
+  }
+
+  void _addExecutionLog(String log) async {
+    setState(() {
+      _executionLogs.add(log);
+    });
+    if (!_logScrollController.hasClients) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _logScrollController.animateTo(
+        _logScrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  Future<void> _tryFunc(
+      {required String actionName, required dynamic Function() func}) async {
+    try {
+      final ret = await func();
+      _addExecutionLog('$actionName: 成功: $ret');
+    } catch (e) {
+      _addExecutionLog('$actionName: 失敗: $e');
+    }
   }
 
   void _handleOnPressedFAB() {
@@ -91,5 +212,54 @@ class _MyHomePageState extends State<MyHomePage> {
         },
       ),
     );
+  }
+
+  Future<void> _createTodoItemsRelatedTodoCategory() async {
+    await _tryFunc(
+      actionName: '任意のTodoCategoryに紐づくTodoItemsを追加',
+      func: () async {
+        final randomCategory = await _driftDb.managers.todoCategory.get();
+        if (randomCategory.isEmpty) {
+          throw Exception('TodoCategoryが存在しません');
+        }
+        randomCategory.shuffle();
+        final selectedCategory = randomCategory.first;
+
+        final todoItems = await _driftDb.managers.todoItems.createReturning(
+          (e) => e(
+            title: _faker.lorem.word(),
+            content: _faker.lorem.sentence(),
+            category: Value(selectedCategory.id),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+
+        return {
+          'category': selectedCategory.toJsonString(),
+          'todoItems': todoItems.toJsonString(),
+        };
+      },
+    );
+  }
+
+  _createRandomTodoItems() async {
+    await _tryFunc(
+      actionName: 'ランダムなTodoItemsを追加',
+      func: () async {
+        return await _driftDb.managers.todoItems.createReturning(
+          (e) => e(
+            title: _faker.lorem.word(),
+            content: _faker.lorem.sentence(),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      },
+    );
+  }
+
+  void _removeLogs() {
+    setState(() {
+      _executionLogs.clear();
+    });
   }
 }

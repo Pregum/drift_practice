@@ -11,13 +11,11 @@ class $TodoCategoryTable extends TodoCategory
   $TodoCategoryTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
       'id', aliasedName, false,
-      hasAutoIncrement: true,
-      type: DriftSqlType.int,
+      type: DriftSqlType.string,
       requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+      clientDefault: () => _uuid.v4());
   static const VerificationMeta _descriptionMeta =
       const VerificationMeta('description');
   @override
@@ -51,13 +49,13 @@ class $TodoCategoryTable extends TodoCategory
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => const {};
   @override
   TodoCategoryData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TodoCategoryData(
       id: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       description: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}description'])!,
     );
@@ -71,13 +69,13 @@ class $TodoCategoryTable extends TodoCategory
 
 class TodoCategoryData extends DataClass
     implements Insertable<TodoCategoryData> {
-  final int id;
+  final String id;
   final String description;
   const TodoCategoryData({required this.id, required this.description});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
+    map['id'] = Variable<String>(id);
     map['description'] = Variable<String>(description);
     return map;
   }
@@ -93,7 +91,7 @@ class TodoCategoryData extends DataClass
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TodoCategoryData(
-      id: serializer.fromJson<int>(json['id']),
+      id: serializer.fromJson<String>(json['id']),
       description: serializer.fromJson<String>(json['description']),
     );
   }
@@ -101,12 +99,13 @@ class TodoCategoryData extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
+      'id': serializer.toJson<String>(id),
       'description': serializer.toJson<String>(description),
     };
   }
 
-  TodoCategoryData copyWith({int? id, String? description}) => TodoCategoryData(
+  TodoCategoryData copyWith({String? id, String? description}) =>
+      TodoCategoryData(
         id: id ?? this.id,
         description: description ?? this.description,
       );
@@ -130,30 +129,37 @@ class TodoCategoryData extends DataClass
 }
 
 class TodoCategoryCompanion extends UpdateCompanion<TodoCategoryData> {
-  final Value<int> id;
+  final Value<String> id;
   final Value<String> description;
+  final Value<int> rowid;
   const TodoCategoryCompanion({
     this.id = const Value.absent(),
     this.description = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   TodoCategoryCompanion.insert({
     this.id = const Value.absent(),
     required String description,
+    this.rowid = const Value.absent(),
   }) : description = Value(description);
   static Insertable<TodoCategoryData> custom({
-    Expression<int>? id,
+    Expression<String>? id,
     Expression<String>? description,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (description != null) 'description': description,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
-  TodoCategoryCompanion copyWith({Value<int>? id, Value<String>? description}) {
+  TodoCategoryCompanion copyWith(
+      {Value<String>? id, Value<String>? description, Value<int>? rowid}) {
     return TodoCategoryCompanion(
       id: id ?? this.id,
       description: description ?? this.description,
+      rowid: rowid ?? this.rowid,
     );
   }
 
@@ -161,10 +167,13 @@ class TodoCategoryCompanion extends UpdateCompanion<TodoCategoryData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     if (id.present) {
-      map['id'] = Variable<int>(id.value);
+      map['id'] = Variable<String>(id.value);
     }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
     }
     return map;
   }
@@ -173,7 +182,8 @@ class TodoCategoryCompanion extends UpdateCompanion<TodoCategoryData> {
   String toString() {
     return (StringBuffer('TodoCategoryCompanion(')
           ..write('id: $id, ')
-          ..write('description: $description')
+          ..write('description: $description, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -198,10 +208,7 @@ class $TodoItemsTable extends TodoItems
   @override
   late final GeneratedColumn<String> title = GeneratedColumn<String>(
       'title', aliasedName, false,
-      additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 6, maxTextLength: 32),
-      type: DriftSqlType.string,
-      requiredDuringInsert: true);
+      type: DriftSqlType.string, requiredDuringInsert: true);
   static const VerificationMeta _contentMeta =
       const VerificationMeta('content');
   @override
@@ -211,9 +218,9 @@ class $TodoItemsTable extends TodoItems
   static const VerificationMeta _categoryMeta =
       const VerificationMeta('category');
   @override
-  late final GeneratedColumn<int> category = GeneratedColumn<int>(
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
       'category', aliasedName, true,
-      type: DriftSqlType.int,
+      type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('REFERENCES todo_category (id)'));
@@ -275,7 +282,7 @@ class $TodoItemsTable extends TodoItems
       content: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}body'])!,
       category: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}category']),
+          .read(DriftSqlType.string, data['${effectivePrefix}category']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at']),
     );
@@ -291,7 +298,7 @@ class TodoItem extends DataClass implements Insertable<TodoItem> {
   final int id;
   final String title;
   final String content;
-  final int? category;
+  final String? category;
   final DateTime? createdAt;
   const TodoItem(
       {required this.id,
@@ -306,7 +313,7 @@ class TodoItem extends DataClass implements Insertable<TodoItem> {
     map['title'] = Variable<String>(title);
     map['body'] = Variable<String>(content);
     if (!nullToAbsent || category != null) {
-      map['category'] = Variable<int>(category);
+      map['category'] = Variable<String>(category);
     }
     if (!nullToAbsent || createdAt != null) {
       map['created_at'] = Variable<DateTime>(createdAt);
@@ -335,7 +342,7 @@ class TodoItem extends DataClass implements Insertable<TodoItem> {
       id: serializer.fromJson<int>(json['id']),
       title: serializer.fromJson<String>(json['title']),
       content: serializer.fromJson<String>(json['content']),
-      category: serializer.fromJson<int?>(json['category']),
+      category: serializer.fromJson<String?>(json['category']),
       createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
     );
   }
@@ -346,7 +353,7 @@ class TodoItem extends DataClass implements Insertable<TodoItem> {
       'id': serializer.toJson<int>(id),
       'title': serializer.toJson<String>(title),
       'content': serializer.toJson<String>(content),
-      'category': serializer.toJson<int?>(category),
+      'category': serializer.toJson<String?>(category),
       'createdAt': serializer.toJson<DateTime?>(createdAt),
     };
   }
@@ -355,7 +362,7 @@ class TodoItem extends DataClass implements Insertable<TodoItem> {
           {int? id,
           String? title,
           String? content,
-          Value<int?> category = const Value.absent(),
+          Value<String?> category = const Value.absent(),
           Value<DateTime?> createdAt = const Value.absent()}) =>
       TodoItem(
         id: id ?? this.id,
@@ -393,7 +400,7 @@ class TodoItemsCompanion extends UpdateCompanion<TodoItem> {
   final Value<int> id;
   final Value<String> title;
   final Value<String> content;
-  final Value<int?> category;
+  final Value<String?> category;
   final Value<DateTime?> createdAt;
   const TodoItemsCompanion({
     this.id = const Value.absent(),
@@ -414,7 +421,7 @@ class TodoItemsCompanion extends UpdateCompanion<TodoItem> {
     Expression<int>? id,
     Expression<String>? title,
     Expression<String>? content,
-    Expression<int>? category,
+    Expression<String>? category,
     Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
@@ -430,7 +437,7 @@ class TodoItemsCompanion extends UpdateCompanion<TodoItem> {
       {Value<int>? id,
       Value<String>? title,
       Value<String>? content,
-      Value<int?>? category,
+      Value<String?>? category,
       Value<DateTime?>? createdAt}) {
     return TodoItemsCompanion(
       id: id ?? this.id,
@@ -454,7 +461,7 @@ class TodoItemsCompanion extends UpdateCompanion<TodoItem> {
       map['body'] = Variable<String>(content.value);
     }
     if (category.present) {
-      map['category'] = Variable<int>(category.value);
+      map['category'] = Variable<String>(category.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -489,13 +496,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 
 typedef $$TodoCategoryTableInsertCompanionBuilder = TodoCategoryCompanion
     Function({
-  Value<int> id,
+  Value<String> id,
   required String description,
+  Value<int> rowid,
 });
 typedef $$TodoCategoryTableUpdateCompanionBuilder = TodoCategoryCompanion
     Function({
-  Value<int> id,
+  Value<String> id,
   Value<String> description,
+  Value<int> rowid,
 });
 
 class $$TodoCategoryTableTableManager extends RootTableManager<
@@ -518,20 +527,24 @@ class $$TodoCategoryTableTableManager extends RootTableManager<
           getChildManagerBuilder: (p) =>
               $$TodoCategoryTableProcessedTableManager(p),
           getUpdateCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
+            Value<String> id = const Value.absent(),
             Value<String> description = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
           }) =>
               TodoCategoryCompanion(
             id: id,
             description: description,
+            rowid: rowid,
           ),
           getInsertCompanionBuilder: ({
-            Value<int> id = const Value.absent(),
+            Value<String> id = const Value.absent(),
             required String description,
+            Value<int> rowid = const Value.absent(),
           }) =>
               TodoCategoryCompanion.insert(
             id: id,
             description: description,
+            rowid: rowid,
           ),
         ));
 }
@@ -551,7 +564,7 @@ class $$TodoCategoryTableProcessedTableManager extends ProcessedTableManager<
 class $$TodoCategoryTableFilterComposer
     extends FilterComposer<_$AppDatabase, $TodoCategoryTable> {
   $$TodoCategoryTableFilterComposer(super.$state);
-  ColumnFilters<int> get id => $state.composableBuilder(
+  ColumnFilters<String> get id => $state.composableBuilder(
       column: $state.table.id,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
@@ -578,7 +591,7 @@ class $$TodoCategoryTableFilterComposer
 class $$TodoCategoryTableOrderingComposer
     extends OrderingComposer<_$AppDatabase, $TodoCategoryTable> {
   $$TodoCategoryTableOrderingComposer(super.$state);
-  ColumnOrderings<int> get id => $state.composableBuilder(
+  ColumnOrderings<String> get id => $state.composableBuilder(
       column: $state.table.id,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
@@ -593,14 +606,14 @@ typedef $$TodoItemsTableInsertCompanionBuilder = TodoItemsCompanion Function({
   Value<int> id,
   required String title,
   required String content,
-  Value<int?> category,
+  Value<String?> category,
   Value<DateTime?> createdAt,
 });
 typedef $$TodoItemsTableUpdateCompanionBuilder = TodoItemsCompanion Function({
   Value<int> id,
   Value<String> title,
   Value<String> content,
-  Value<int?> category,
+  Value<String?> category,
   Value<DateTime?> createdAt,
 });
 
@@ -627,7 +640,7 @@ class $$TodoItemsTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<String> title = const Value.absent(),
             Value<String> content = const Value.absent(),
-            Value<int?> category = const Value.absent(),
+            Value<String?> category = const Value.absent(),
             Value<DateTime?> createdAt = const Value.absent(),
           }) =>
               TodoItemsCompanion(
@@ -641,7 +654,7 @@ class $$TodoItemsTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             required String title,
             required String content,
-            Value<int?> category = const Value.absent(),
+            Value<String?> category = const Value.absent(),
             Value<DateTime?> createdAt = const Value.absent(),
           }) =>
               TodoItemsCompanion.insert(

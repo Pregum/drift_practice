@@ -8,20 +8,23 @@ import 'package:path/path.dart' as p;
 // ignore: depend_on_referenced_packages
 import 'package:sqlite3/sqlite3.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
+import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 
+const _uuid = Uuid();
+
 class TodoItems extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get title => text().withLength(min: 6, max: 32)();
+  TextColumn get title => text()();
   TextColumn get content => text().named('body')();
-  IntColumn get category =>
-      integer().nullable().references(TodoCategory, #id)();
+  TextColumn get category =>
+      text().nullable().references(TodoCategory, #id)();
   DateTimeColumn get createdAt => dateTime().nullable()();
 }
 
 class TodoCategory extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  TextColumn get id => text().clientDefault(() => _uuid.v4())();
   TextColumn get description => text()();
 }
 
