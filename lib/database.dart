@@ -25,10 +25,16 @@ class TodoCategory extends Table {
   TextColumn get description => text()();
 }
 
-
 @DriftDatabase(tables: [TodoItems, TodoCategory])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase._() : super(_openConnection());
+
+  static AppDatabase? _singleton;
+
+  factory AppDatabase.singleton() {
+    _singleton ??= AppDatabase._();
+    return _singleton!;
+  }
 
   @override
   int get schemaVersion => 1;
