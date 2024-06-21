@@ -49,7 +49,7 @@ class $TodoCategoriesTable extends TodoCategories
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => const {};
+  Set<GeneratedColumn> get $primaryKey => {id};
   @override
   TodoCategory map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -480,18 +480,420 @@ class TodoItemsCompanion extends UpdateCompanion<TodoItem> {
   }
 }
 
+class $HashTagsTable extends HashTags with TableInfo<$HashTagsTable, HashTag> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HashTagsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      clientDefault: () => _uuid.v4());
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 32),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, name];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'hash_tags';
+  @override
+  VerificationContext validateIntegrity(Insertable<HashTag> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HashTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HashTag(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+    );
+  }
+
+  @override
+  $HashTagsTable createAlias(String alias) {
+    return $HashTagsTable(attachedDatabase, alias);
+  }
+}
+
+class HashTag extends DataClass implements Insertable<HashTag> {
+  final String id;
+  final String name;
+  const HashTag({required this.id, required this.name});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  HashTagsCompanion toCompanion(bool nullToAbsent) {
+    return HashTagsCompanion(
+      id: Value(id),
+      name: Value(name),
+    );
+  }
+
+  factory HashTag.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HashTag(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  HashTag copyWith({String? id, String? name}) => HashTag(
+        id: id ?? this.id,
+        name: name ?? this.name,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('HashTag(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HashTag && other.id == this.id && other.name == this.name);
+}
+
+class HashTagsCompanion extends UpdateCompanion<HashTag> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<int> rowid;
+  const HashTagsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HashTagsCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.rowid = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<HashTag> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HashTagsCompanion copyWith(
+      {Value<String>? id, Value<String>? name, Value<int>? rowid}) {
+    return HashTagsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HashTagsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TodoItemHashTagTable extends TodoItemHashTag
+    with TableInfo<$TodoItemHashTagTable, TodoItemHashTagData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TodoItemHashTagTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _todoItemIdMeta =
+      const VerificationMeta('todoItemId');
+  @override
+  late final GeneratedColumn<int> todoItemId = GeneratedColumn<int>(
+      'todo_item_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES todo_items (id) ON DELETE CASCADE'));
+  static const VerificationMeta _hashTagIdMeta =
+      const VerificationMeta('hashTagId');
+  @override
+  late final GeneratedColumn<String> hashTagId = GeneratedColumn<String>(
+      'hash_tag_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES hash_tags (id) ON DELETE CASCADE'));
+  @override
+  List<GeneratedColumn> get $columns => [todoItemId, hashTagId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'todo_item_hash_tag';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<TodoItemHashTagData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('todo_item_id')) {
+      context.handle(
+          _todoItemIdMeta,
+          todoItemId.isAcceptableOrUnknown(
+              data['todo_item_id']!, _todoItemIdMeta));
+    } else if (isInserting) {
+      context.missing(_todoItemIdMeta);
+    }
+    if (data.containsKey('hash_tag_id')) {
+      context.handle(
+          _hashTagIdMeta,
+          hashTagId.isAcceptableOrUnknown(
+              data['hash_tag_id']!, _hashTagIdMeta));
+    } else if (isInserting) {
+      context.missing(_hashTagIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {todoItemId, hashTagId};
+  @override
+  TodoItemHashTagData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TodoItemHashTagData(
+      todoItemId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}todo_item_id'])!,
+      hashTagId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}hash_tag_id'])!,
+    );
+  }
+
+  @override
+  $TodoItemHashTagTable createAlias(String alias) {
+    return $TodoItemHashTagTable(attachedDatabase, alias);
+  }
+}
+
+class TodoItemHashTagData extends DataClass
+    implements Insertable<TodoItemHashTagData> {
+  final int todoItemId;
+  final String hashTagId;
+  const TodoItemHashTagData(
+      {required this.todoItemId, required this.hashTagId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['todo_item_id'] = Variable<int>(todoItemId);
+    map['hash_tag_id'] = Variable<String>(hashTagId);
+    return map;
+  }
+
+  TodoItemHashTagCompanion toCompanion(bool nullToAbsent) {
+    return TodoItemHashTagCompanion(
+      todoItemId: Value(todoItemId),
+      hashTagId: Value(hashTagId),
+    );
+  }
+
+  factory TodoItemHashTagData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TodoItemHashTagData(
+      todoItemId: serializer.fromJson<int>(json['todoItemId']),
+      hashTagId: serializer.fromJson<String>(json['hashTagId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'todoItemId': serializer.toJson<int>(todoItemId),
+      'hashTagId': serializer.toJson<String>(hashTagId),
+    };
+  }
+
+  TodoItemHashTagData copyWith({int? todoItemId, String? hashTagId}) =>
+      TodoItemHashTagData(
+        todoItemId: todoItemId ?? this.todoItemId,
+        hashTagId: hashTagId ?? this.hashTagId,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('TodoItemHashTagData(')
+          ..write('todoItemId: $todoItemId, ')
+          ..write('hashTagId: $hashTagId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(todoItemId, hashTagId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TodoItemHashTagData &&
+          other.todoItemId == this.todoItemId &&
+          other.hashTagId == this.hashTagId);
+}
+
+class TodoItemHashTagCompanion extends UpdateCompanion<TodoItemHashTagData> {
+  final Value<int> todoItemId;
+  final Value<String> hashTagId;
+  final Value<int> rowid;
+  const TodoItemHashTagCompanion({
+    this.todoItemId = const Value.absent(),
+    this.hashTagId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TodoItemHashTagCompanion.insert({
+    required int todoItemId,
+    required String hashTagId,
+    this.rowid = const Value.absent(),
+  })  : todoItemId = Value(todoItemId),
+        hashTagId = Value(hashTagId);
+  static Insertable<TodoItemHashTagData> custom({
+    Expression<int>? todoItemId,
+    Expression<String>? hashTagId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (todoItemId != null) 'todo_item_id': todoItemId,
+      if (hashTagId != null) 'hash_tag_id': hashTagId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TodoItemHashTagCompanion copyWith(
+      {Value<int>? todoItemId, Value<String>? hashTagId, Value<int>? rowid}) {
+    return TodoItemHashTagCompanion(
+      todoItemId: todoItemId ?? this.todoItemId,
+      hashTagId: hashTagId ?? this.hashTagId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (todoItemId.present) {
+      map['todo_item_id'] = Variable<int>(todoItemId.value);
+    }
+    if (hashTagId.present) {
+      map['hash_tag_id'] = Variable<String>(hashTagId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TodoItemHashTagCompanion(')
+          ..write('todoItemId: $todoItemId, ')
+          ..write('hashTagId: $hashTagId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   _$AppDatabaseManager get managers => _$AppDatabaseManager(this);
   late final $TodoCategoriesTable todoCategories = $TodoCategoriesTable(this);
   late final $TodoItemsTable todoItems = $TodoItemsTable(this);
+  late final $HashTagsTable hashTags = $HashTagsTable(this);
+  late final $TodoItemHashTagTable todoItemHashTag =
+      $TodoItemHashTagTable(this);
   late final TodoDao todoDao = TodoDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [todoCategories, todoItems];
+      [todoCategories, todoItems, hashTags, todoItemHashTag];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
+        [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('todo_items',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('todo_item_hash_tag', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('hash_tags',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('todo_item_hash_tag', kind: UpdateKind.delete),
+            ],
+          ),
+        ],
+      );
 }
 
 typedef $$TodoCategoriesTableInsertCompanionBuilder = TodoCategoriesCompanion
@@ -714,6 +1116,20 @@ class $$TodoItemsTableFilterComposer
                 $state.db.todoCategories, joinBuilder, parentComposers)));
     return composer;
   }
+
+  ComposableFilter todoItemHashTagRefs(
+      ComposableFilter Function($$TodoItemHashTagTableFilterComposer f) f) {
+    final $$TodoItemHashTagTableFilterComposer composer =
+        $state.composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $state.db.todoItemHashTag,
+            getReferencedColumn: (t) => t.todoItemId,
+            builder: (joinBuilder, parentComposers) =>
+                $$TodoItemHashTagTableFilterComposer(ComposerState($state.db,
+                    $state.db.todoItemHashTag, joinBuilder, parentComposers)));
+    return f(composer);
+  }
 }
 
 class $$TodoItemsTableOrderingComposer
@@ -753,6 +1169,237 @@ class $$TodoItemsTableOrderingComposer
   }
 }
 
+typedef $$HashTagsTableInsertCompanionBuilder = HashTagsCompanion Function({
+  Value<String> id,
+  required String name,
+  Value<int> rowid,
+});
+typedef $$HashTagsTableUpdateCompanionBuilder = HashTagsCompanion Function({
+  Value<String> id,
+  Value<String> name,
+  Value<int> rowid,
+});
+
+class $$HashTagsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $HashTagsTable,
+    HashTag,
+    $$HashTagsTableFilterComposer,
+    $$HashTagsTableOrderingComposer,
+    $$HashTagsTableProcessedTableManager,
+    $$HashTagsTableInsertCompanionBuilder,
+    $$HashTagsTableUpdateCompanionBuilder> {
+  $$HashTagsTableTableManager(_$AppDatabase db, $HashTagsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$HashTagsTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$HashTagsTableOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $$HashTagsTableProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<String> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              HashTagsCompanion(
+            id: id,
+            name: name,
+            rowid: rowid,
+          ),
+          getInsertCompanionBuilder: ({
+            Value<String> id = const Value.absent(),
+            required String name,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              HashTagsCompanion.insert(
+            id: id,
+            name: name,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $$HashTagsTableProcessedTableManager extends ProcessedTableManager<
+    _$AppDatabase,
+    $HashTagsTable,
+    HashTag,
+    $$HashTagsTableFilterComposer,
+    $$HashTagsTableOrderingComposer,
+    $$HashTagsTableProcessedTableManager,
+    $$HashTagsTableInsertCompanionBuilder,
+    $$HashTagsTableUpdateCompanionBuilder> {
+  $$HashTagsTableProcessedTableManager(super.$state);
+}
+
+class $$HashTagsTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $HashTagsTable> {
+  $$HashTagsTableFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ComposableFilter todoItemHashTagRefs(
+      ComposableFilter Function($$TodoItemHashTagTableFilterComposer f) f) {
+    final $$TodoItemHashTagTableFilterComposer composer =
+        $state.composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $state.db.todoItemHashTag,
+            getReferencedColumn: (t) => t.hashTagId,
+            builder: (joinBuilder, parentComposers) =>
+                $$TodoItemHashTagTableFilterComposer(ComposerState($state.db,
+                    $state.db.todoItemHashTag, joinBuilder, parentComposers)));
+    return f(composer);
+  }
+}
+
+class $$HashTagsTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $HashTagsTable> {
+  $$HashTagsTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $$TodoItemHashTagTableInsertCompanionBuilder = TodoItemHashTagCompanion
+    Function({
+  required int todoItemId,
+  required String hashTagId,
+  Value<int> rowid,
+});
+typedef $$TodoItemHashTagTableUpdateCompanionBuilder = TodoItemHashTagCompanion
+    Function({
+  Value<int> todoItemId,
+  Value<String> hashTagId,
+  Value<int> rowid,
+});
+
+class $$TodoItemHashTagTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TodoItemHashTagTable,
+    TodoItemHashTagData,
+    $$TodoItemHashTagTableFilterComposer,
+    $$TodoItemHashTagTableOrderingComposer,
+    $$TodoItemHashTagTableProcessedTableManager,
+    $$TodoItemHashTagTableInsertCompanionBuilder,
+    $$TodoItemHashTagTableUpdateCompanionBuilder> {
+  $$TodoItemHashTagTableTableManager(
+      _$AppDatabase db, $TodoItemHashTagTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$TodoItemHashTagTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$TodoItemHashTagTableOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $$TodoItemHashTagTableProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
+            Value<int> todoItemId = const Value.absent(),
+            Value<String> hashTagId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TodoItemHashTagCompanion(
+            todoItemId: todoItemId,
+            hashTagId: hashTagId,
+            rowid: rowid,
+          ),
+          getInsertCompanionBuilder: ({
+            required int todoItemId,
+            required String hashTagId,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TodoItemHashTagCompanion.insert(
+            todoItemId: todoItemId,
+            hashTagId: hashTagId,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $$TodoItemHashTagTableProcessedTableManager extends ProcessedTableManager<
+    _$AppDatabase,
+    $TodoItemHashTagTable,
+    TodoItemHashTagData,
+    $$TodoItemHashTagTableFilterComposer,
+    $$TodoItemHashTagTableOrderingComposer,
+    $$TodoItemHashTagTableProcessedTableManager,
+    $$TodoItemHashTagTableInsertCompanionBuilder,
+    $$TodoItemHashTagTableUpdateCompanionBuilder> {
+  $$TodoItemHashTagTableProcessedTableManager(super.$state);
+}
+
+class $$TodoItemHashTagTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $TodoItemHashTagTable> {
+  $$TodoItemHashTagTableFilterComposer(super.$state);
+  $$TodoItemsTableFilterComposer get todoItemId {
+    final $$TodoItemsTableFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.todoItemId,
+        referencedTable: $state.db.todoItems,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$TodoItemsTableFilterComposer(ComposerState(
+                $state.db, $state.db.todoItems, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $$HashTagsTableFilterComposer get hashTagId {
+    final $$HashTagsTableFilterComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.hashTagId,
+        referencedTable: $state.db.hashTags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$HashTagsTableFilterComposer(ComposerState(
+                $state.db, $state.db.hashTags, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
+class $$TodoItemHashTagTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $TodoItemHashTagTable> {
+  $$TodoItemHashTagTableOrderingComposer(super.$state);
+  $$TodoItemsTableOrderingComposer get todoItemId {
+    final $$TodoItemsTableOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.todoItemId,
+        referencedTable: $state.db.todoItems,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$TodoItemsTableOrderingComposer(ComposerState(
+                $state.db, $state.db.todoItems, joinBuilder, parentComposers)));
+    return composer;
+  }
+
+  $$HashTagsTableOrderingComposer get hashTagId {
+    final $$HashTagsTableOrderingComposer composer = $state.composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.hashTagId,
+        referencedTable: $state.db.hashTags,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder, parentComposers) =>
+            $$HashTagsTableOrderingComposer(ComposerState(
+                $state.db, $state.db.hashTags, joinBuilder, parentComposers)));
+    return composer;
+  }
+}
+
 class _$AppDatabaseManager {
   final _$AppDatabase _db;
   _$AppDatabaseManager(this._db);
@@ -760,4 +1407,8 @@ class _$AppDatabaseManager {
       $$TodoCategoriesTableTableManager(_db, _db.todoCategories);
   $$TodoItemsTableTableManager get todoItems =>
       $$TodoItemsTableTableManager(_db, _db.todoItems);
+  $$HashTagsTableTableManager get hashTags =>
+      $$HashTagsTableTableManager(_db, _db.hashTags);
+  $$TodoItemHashTagTableTableManager get todoItemHashTag =>
+      $$TodoItemHashTagTableTableManager(_db, _db.todoItemHashTag);
 }

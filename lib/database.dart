@@ -16,19 +16,47 @@ part 'database.g.dart';
 const _uuid = Uuid();
 
 class TodoItems extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  IntColumn get id => integer().autoIncrement()(); // autoIncrementを使うと主キーに設定される
   TextColumn get title => text()();
   TextColumn get content => text().named('body')();
-  TextColumn get category => text().nullable().references(TodoCategories, #id)();
+  TextColumn get category =>
+      text().nullable().references(TodoCategories, #id)();
   DateTimeColumn get createdAt => dateTime().nullable()();
 }
 
 class TodoCategories extends Table {
   TextColumn get id => text().clientDefault(() => _uuid.v4())();
   TextColumn get description => text()();
+
+  @override
+  Set<Column<Object>>? get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [TodoItems, TodoCategories], daos: [TodoDao])
+class HashTags extends Table {
+  TextColumn get id => text().clientDefault(() => _uuid.v4())();
+  TextColumn get name => text().withLength(min: 1, max: 32)();
+
+  @override
+  Set<Column<Object>>? get primaryKey => {id};
+}
+
+class TodoItemHashTag extends Table {
+  IntColumn get todoItemId =>
+      integer().references(TodoItems, #id, onDelete: KeyAction.cascade)();
+  TextColumn get hashTagId =>
+      text().references(HashTags, #id, onDelete: KeyAction.cascade)();
+  // こんなかんじで外部キーを指定することもできる
+  // TextColumn get hashTagId =>
+  //     text().customConstraint('REFERENCES hash_tags(id)')();
+
+  @override
+  Set<Column<Object>>? get primaryKey => {todoItemId, hashTagId};
+}
+
+@DriftDatabase(
+  tables: [TodoItems, TodoCategories, HashTags, TodoItemHashTag],
+  daos: [TodoDao],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
 
