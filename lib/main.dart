@@ -124,7 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   ElevatedButton(
                     onPressed: () async {
-                      await _getTodoItemsBySpecificRelatedTodoCategory();
+                      await _getTodoItemsByTodoCategoryId();
                     },
                     child: const Text('特定のTodoCategoryに紐づくTodoItemsを取得'),
                   ),
@@ -269,7 +269,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<void> _getTodoItemsBySpecificRelatedTodoCategory() async {
+  Future<void> _getTodoItemsByTodoCategoryId() async {
     await _tryFunc(
       actionName: '特定のTodoCategoryに紐づくTodoItemsを取得',
       func: () async {
@@ -279,6 +279,9 @@ class _MyHomePageState extends State<MyHomePage> {
         }
 
         final selectedCategory = randomCategory.first;
+        final categoryWithTodoItems = await _driftDb.todoDao
+            .getCategoriesWithItems(todoCategoryId: selectedCategory.id);
+        return categoryWithTodoItems;
       },
     );
   }

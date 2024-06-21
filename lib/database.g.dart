@@ -485,6 +485,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabaseManager get managers => _$AppDatabaseManager(this);
   late final $TodoCategoriesTable todoCategories = $TodoCategoriesTable(this);
   late final $TodoItemsTable todoItems = $TodoItemsTable(this);
+  late final TodoDao todoDao = TodoDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();

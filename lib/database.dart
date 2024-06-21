@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 // These additional imports are necessary to open the sqlite3 database
 import 'dart:io';
 import 'package:drift/native.dart';
+import 'package:drift_practice/todo_dao.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 // ignore: depend_on_referenced_packages
@@ -27,7 +28,7 @@ class TodoCategories extends Table {
   TextColumn get description => text()();
 }
 
-@DriftDatabase(tables: [TodoItems, TodoCategories])
+@DriftDatabase(tables: [TodoItems, TodoCategories], daos: [TodoDao])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
 
