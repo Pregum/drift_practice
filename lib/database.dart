@@ -69,6 +69,25 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
+
+  /// 重要なお知らせ: sqlite3 では、外部キーはデフォルトで有効になっていません。外部キーを使用する場合は、[MigrationStrategy.beforeOpen] コールバックでオプションを有効にすることを忘れないでください:
+  /// 外部キーを有効にする為にPRAGMA foreign_keys = ONを実行
+  // @override
+  // Future<void> beforeOpen(
+  //     QueryExecutor executor, OpeningDetails details) async {
+  //   await customStatement('PRAGMA foreign_keys = ON');
+  //   return super.beforeOpen(executor, details);
+  // }
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (detail) {
+          return detail.createAll();
+        },
+        //毎回アプリを明けデータベースにアクセスするタイミングで呼ばれる。
+        beforeOpen: (details) async {
+          await customStatement('PRAGMA foreign_keys = ON;');
+        },
+      );
 }
 
 LazyDatabase _openConnection() {

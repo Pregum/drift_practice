@@ -6,4 +6,6 @@ part of 'todo_dao.dart';
 mixin _$TodoDaoMixin on DatabaseAccessor<AppDatabase> {
   $TodoCategoriesTable get todoCategories => attachedDatabase.todoCategories;
   $TodoItemsTable get todoItems => attachedDatabase.todoItems;
+  $HashTagsTable get hashTags => attachedDatabase.hashTags;
+  $TodoItemHashTagTable get todoItemHashTag => attachedDatabase.todoItemHashTag;
 }

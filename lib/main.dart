@@ -135,9 +135,27 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   ElevatedButton(
                     onPressed: () async {
+                      await _getByHashTag();
+                    },
+                    child: const Text('特定のHashTagに紐づくTodoItemsを取得'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
                       await _getTodoItemsByTodoCategoryId();
                     },
                     child: const Text('特定のTodoCategoryに紐づくTodoItemsを取得'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _deleteTodoItems();
+                    },
+                    child: const Text('TodoItemsを削除'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _deleteHashTag();
+                    },
+                    child: const Text('HashTagを削除'),
                   ),
                   ElevatedButton(
                     onPressed: () async {
@@ -321,7 +339,7 @@ class _MyHomePageState extends State<MyHomePage> {
         if (todoItems.isEmpty || hashTags.isEmpty) {
           throw Exception('TodoItemまたはHashTagが存在しません');
         }
-        
+
         // シャッフル
         todoItems.shuffle();
         hashTags.shuffle();
@@ -329,13 +347,49 @@ class _MyHomePageState extends State<MyHomePage> {
         //TodoItemHashTagを作成する
         final todoItem = todoItems.first;
         final hashTag = hashTags.first;
-        return await _driftDb.managers.todoItemHashTag.create(
+        return await _driftDb.managers.todoItemHashTag.createReturning(
           (e) => e(
             todoItemId: todoItem.id,
             hashTagId: hashTag.id,
           ),
-          mode: InsertMode.insertOrReplace,
+          mode: InsertMode.insertOrAbort,
         );
+      },
+    );
+  }
+
+  Future<void> _getByHashTag() async {
+    await _tryFunc(
+      actionName: '特定のHashTagに紐づくTodoItemsを取得',
+      func: () async {
+        final hashTags = await _driftDb.managers.hashTags.get();
+        if (hashTags.isEmpty) {
+          throw Exception('HashTagが存在しません');
+        }
+
+        final hashTag = hashTags.first;
+
+        final hashTagWithTodoItems =
+            await _driftDb.todoDao.getHashTagWithItems(hashTagId: hashTag.id);
+        return hashTagWithTodoItems;
+      },
+    );
+  }
+
+  _deleteTodoItems() async {
+    await _tryFunc(
+      actionName: 'TodoItemsを削除',
+      func: () async {
+        return await _driftDb.managers.todoItems.delete();
+      },
+    );
+  }
+
+  _deleteHashTag() async {
+    await _tryFunc(
+      actionName: 'HashTagを削除',
+      func: () async {
+        return await _driftDb.managers.hashTags.delete();
       },
     );
   }
