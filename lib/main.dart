@@ -3,7 +3,6 @@ import 'package:drift_db_viewer/drift_db_viewer.dart';
 import 'package:drift_practice/database.dart';
 import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
-import 'package:gap/gap.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -124,6 +123,18 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   ElevatedButton(
                     onPressed: () async {
+                      await _createHashTags();
+                    },
+                    child: const Text('ランダムなHashTagsを追加'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _createTodoItemHashTag();
+                    },
+                    child: const Text('特定のTodoItemとHashTagを紐づける'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
                       await _getTodoItemsByTodoCategoryId();
                     },
                     child: const Text('特定のTodoCategoryに紐づくTodoItemsを取得'),
@@ -162,6 +173,8 @@ class _MyHomePageState extends State<MyHomePage> {
           [
             _driftDb.managers.todoItems.delete(),
             _driftDb.managers.todoCategories.delete(),
+            _driftDb.managers.hashTags.delete(),
+            _driftDb.managers.todoItemHashTag.delete(),
           ],
         );
       },
@@ -282,6 +295,47 @@ class _MyHomePageState extends State<MyHomePage> {
         final categoryWithTodoItems = await _driftDb.todoDao
             .getCategoriesWithItems(todoCategoryId: selectedCategory.id);
         return categoryWithTodoItems;
+      },
+    );
+  }
+
+  Future<void> _createHashTags() async {
+    await _tryFunc(
+      actionName: 'ランダムなHashTagsを追加',
+      func: () async {
+        return await _driftDb.managers.hashTags.createReturning(
+          (e) => e(name: _faker.lorem.word()),
+          mode: InsertMode.insertOrReplace,
+        );
+      },
+    );
+  }
+
+  Future<void> _createTodoItemHashTag() async {
+    await _tryFunc(
+      actionName: '特定のTodoItemとHashTagを紐づける',
+      func: () async {
+        // todoItemとhashTagを取得する
+        final todoItems = await _driftDb.managers.todoItems.get();
+        final hashTags = await _driftDb.managers.hashTags.get();
+        if (todoItems.isEmpty || hashTags.isEmpty) {
+          throw Exception('TodoItemまたはHashTagが存在しません');
+        }
+        
+        // シャッフル
+        todoItems.shuffle();
+        hashTags.shuffle();
+
+        //TodoItemHashTagを作成する
+        final todoItem = todoItems.first;
+        final hashTag = hashTags.first;
+        return await _driftDb.managers.todoItemHashTag.create(
+          (e) => e(
+            todoItemId: todoItem.id,
+            hashTagId: hashTag.id,
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
       },
     );
   }
