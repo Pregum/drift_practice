@@ -18,17 +18,16 @@ class TodoItems extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text()();
   TextColumn get content => text().named('body')();
-  TextColumn get category =>
-      text().nullable().references(TodoCategory, #id)();
+  TextColumn get category => text().nullable().references(TodoCategories, #id)();
   DateTimeColumn get createdAt => dateTime().nullable()();
 }
 
-class TodoCategory extends Table {
+class TodoCategories extends Table {
   TextColumn get id => text().clientDefault(() => _uuid.v4())();
   TextColumn get description => text()();
 }
 
-@DriftDatabase(tables: [TodoItems, TodoCategory])
+@DriftDatabase(tables: [TodoItems, TodoCategories])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
 

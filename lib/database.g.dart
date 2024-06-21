@@ -3,12 +3,12 @@
 part of 'database.dart';
 
 // ignore_for_file: type=lint
-class $TodoCategoryTable extends TodoCategory
-    with TableInfo<$TodoCategoryTable, TodoCategoryData> {
+class $TodoCategoriesTable extends TodoCategories
+    with TableInfo<$TodoCategoriesTable, TodoCategory> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $TodoCategoryTable(this.attachedDatabase, [this._alias]);
+  $TodoCategoriesTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -28,9 +28,9 @@ class $TodoCategoryTable extends TodoCategory
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'todo_category';
+  static const String $name = 'todo_categories';
   @override
-  VerificationContext validateIntegrity(Insertable<TodoCategoryData> instance,
+  VerificationContext validateIntegrity(Insertable<TodoCategory> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
@@ -51,9 +51,9 @@ class $TodoCategoryTable extends TodoCategory
   @override
   Set<GeneratedColumn> get $primaryKey => const {};
   @override
-  TodoCategoryData map(Map<String, dynamic> data, {String? tablePrefix}) {
+  TodoCategory map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return TodoCategoryData(
+    return TodoCategory(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
       description: attachedDatabase.typeMapping
@@ -62,16 +62,15 @@ class $TodoCategoryTable extends TodoCategory
   }
 
   @override
-  $TodoCategoryTable createAlias(String alias) {
-    return $TodoCategoryTable(attachedDatabase, alias);
+  $TodoCategoriesTable createAlias(String alias) {
+    return $TodoCategoriesTable(attachedDatabase, alias);
   }
 }
 
-class TodoCategoryData extends DataClass
-    implements Insertable<TodoCategoryData> {
+class TodoCategory extends DataClass implements Insertable<TodoCategory> {
   final String id;
   final String description;
-  const TodoCategoryData({required this.id, required this.description});
+  const TodoCategory({required this.id, required this.description});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -80,17 +79,17 @@ class TodoCategoryData extends DataClass
     return map;
   }
 
-  TodoCategoryCompanion toCompanion(bool nullToAbsent) {
-    return TodoCategoryCompanion(
+  TodoCategoriesCompanion toCompanion(bool nullToAbsent) {
+    return TodoCategoriesCompanion(
       id: Value(id),
       description: Value(description),
     );
   }
 
-  factory TodoCategoryData.fromJson(Map<String, dynamic> json,
+  factory TodoCategory.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return TodoCategoryData(
+    return TodoCategory(
       id: serializer.fromJson<String>(json['id']),
       description: serializer.fromJson<String>(json['description']),
     );
@@ -104,14 +103,13 @@ class TodoCategoryData extends DataClass
     };
   }
 
-  TodoCategoryData copyWith({String? id, String? description}) =>
-      TodoCategoryData(
+  TodoCategory copyWith({String? id, String? description}) => TodoCategory(
         id: id ?? this.id,
         description: description ?? this.description,
       );
   @override
   String toString() {
-    return (StringBuffer('TodoCategoryData(')
+    return (StringBuffer('TodoCategory(')
           ..write('id: $id, ')
           ..write('description: $description')
           ..write(')'))
@@ -123,26 +121,26 @@ class TodoCategoryData extends DataClass
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is TodoCategoryData &&
+      (other is TodoCategory &&
           other.id == this.id &&
           other.description == this.description);
 }
 
-class TodoCategoryCompanion extends UpdateCompanion<TodoCategoryData> {
+class TodoCategoriesCompanion extends UpdateCompanion<TodoCategory> {
   final Value<String> id;
   final Value<String> description;
   final Value<int> rowid;
-  const TodoCategoryCompanion({
+  const TodoCategoriesCompanion({
     this.id = const Value.absent(),
     this.description = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  TodoCategoryCompanion.insert({
+  TodoCategoriesCompanion.insert({
     this.id = const Value.absent(),
     required String description,
     this.rowid = const Value.absent(),
   }) : description = Value(description);
-  static Insertable<TodoCategoryData> custom({
+  static Insertable<TodoCategory> custom({
     Expression<String>? id,
     Expression<String>? description,
     Expression<int>? rowid,
@@ -154,9 +152,9 @@ class TodoCategoryCompanion extends UpdateCompanion<TodoCategoryData> {
     });
   }
 
-  TodoCategoryCompanion copyWith(
+  TodoCategoriesCompanion copyWith(
       {Value<String>? id, Value<String>? description, Value<int>? rowid}) {
-    return TodoCategoryCompanion(
+    return TodoCategoriesCompanion(
       id: id ?? this.id,
       description: description ?? this.description,
       rowid: rowid ?? this.rowid,
@@ -180,7 +178,7 @@ class TodoCategoryCompanion extends UpdateCompanion<TodoCategoryData> {
 
   @override
   String toString() {
-    return (StringBuffer('TodoCategoryCompanion(')
+    return (StringBuffer('TodoCategoriesCompanion(')
           ..write('id: $id, ')
           ..write('description: $description, ')
           ..write('rowid: $rowid')
@@ -222,8 +220,8 @@ class $TodoItemsTable extends TodoItems
       'category', aliasedName, true,
       type: DriftSqlType.string,
       requiredDuringInsert: false,
-      defaultConstraints:
-          GeneratedColumn.constraintIsAlways('REFERENCES todo_category (id)'));
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES todo_categories (id)'));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -485,53 +483,55 @@ class TodoItemsCompanion extends UpdateCompanion<TodoItem> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   _$AppDatabaseManager get managers => _$AppDatabaseManager(this);
-  late final $TodoCategoryTable todoCategory = $TodoCategoryTable(this);
+  late final $TodoCategoriesTable todoCategories = $TodoCategoriesTable(this);
   late final $TodoItemsTable todoItems = $TodoItemsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [todoCategory, todoItems];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [todoCategories, todoItems];
 }
 
-typedef $$TodoCategoryTableInsertCompanionBuilder = TodoCategoryCompanion
+typedef $$TodoCategoriesTableInsertCompanionBuilder = TodoCategoriesCompanion
     Function({
   Value<String> id,
   required String description,
   Value<int> rowid,
 });
-typedef $$TodoCategoryTableUpdateCompanionBuilder = TodoCategoryCompanion
+typedef $$TodoCategoriesTableUpdateCompanionBuilder = TodoCategoriesCompanion
     Function({
   Value<String> id,
   Value<String> description,
   Value<int> rowid,
 });
 
-class $$TodoCategoryTableTableManager extends RootTableManager<
+class $$TodoCategoriesTableTableManager extends RootTableManager<
     _$AppDatabase,
-    $TodoCategoryTable,
-    TodoCategoryData,
-    $$TodoCategoryTableFilterComposer,
-    $$TodoCategoryTableOrderingComposer,
-    $$TodoCategoryTableProcessedTableManager,
-    $$TodoCategoryTableInsertCompanionBuilder,
-    $$TodoCategoryTableUpdateCompanionBuilder> {
-  $$TodoCategoryTableTableManager(_$AppDatabase db, $TodoCategoryTable table)
+    $TodoCategoriesTable,
+    TodoCategory,
+    $$TodoCategoriesTableFilterComposer,
+    $$TodoCategoriesTableOrderingComposer,
+    $$TodoCategoriesTableProcessedTableManager,
+    $$TodoCategoriesTableInsertCompanionBuilder,
+    $$TodoCategoriesTableUpdateCompanionBuilder> {
+  $$TodoCategoriesTableTableManager(
+      _$AppDatabase db, $TodoCategoriesTable table)
       : super(TableManagerState(
           db: db,
           table: table,
           filteringComposer:
-              $$TodoCategoryTableFilterComposer(ComposerState(db, table)),
+              $$TodoCategoriesTableFilterComposer(ComposerState(db, table)),
           orderingComposer:
-              $$TodoCategoryTableOrderingComposer(ComposerState(db, table)),
+              $$TodoCategoriesTableOrderingComposer(ComposerState(db, table)),
           getChildManagerBuilder: (p) =>
-              $$TodoCategoryTableProcessedTableManager(p),
+              $$TodoCategoriesTableProcessedTableManager(p),
           getUpdateCompanionBuilder: ({
             Value<String> id = const Value.absent(),
             Value<String> description = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
-              TodoCategoryCompanion(
+              TodoCategoriesCompanion(
             id: id,
             description: description,
             rowid: rowid,
@@ -541,7 +541,7 @@ class $$TodoCategoryTableTableManager extends RootTableManager<
             required String description,
             Value<int> rowid = const Value.absent(),
           }) =>
-              TodoCategoryCompanion.insert(
+              TodoCategoriesCompanion.insert(
             id: id,
             description: description,
             rowid: rowid,
@@ -549,21 +549,21 @@ class $$TodoCategoryTableTableManager extends RootTableManager<
         ));
 }
 
-class $$TodoCategoryTableProcessedTableManager extends ProcessedTableManager<
+class $$TodoCategoriesTableProcessedTableManager extends ProcessedTableManager<
     _$AppDatabase,
-    $TodoCategoryTable,
-    TodoCategoryData,
-    $$TodoCategoryTableFilterComposer,
-    $$TodoCategoryTableOrderingComposer,
-    $$TodoCategoryTableProcessedTableManager,
-    $$TodoCategoryTableInsertCompanionBuilder,
-    $$TodoCategoryTableUpdateCompanionBuilder> {
-  $$TodoCategoryTableProcessedTableManager(super.$state);
+    $TodoCategoriesTable,
+    TodoCategory,
+    $$TodoCategoriesTableFilterComposer,
+    $$TodoCategoriesTableOrderingComposer,
+    $$TodoCategoriesTableProcessedTableManager,
+    $$TodoCategoriesTableInsertCompanionBuilder,
+    $$TodoCategoriesTableUpdateCompanionBuilder> {
+  $$TodoCategoriesTableProcessedTableManager(super.$state);
 }
 
-class $$TodoCategoryTableFilterComposer
-    extends FilterComposer<_$AppDatabase, $TodoCategoryTable> {
-  $$TodoCategoryTableFilterComposer(super.$state);
+class $$TodoCategoriesTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $TodoCategoriesTable> {
+  $$TodoCategoriesTableFilterComposer(super.$state);
   ColumnFilters<String> get id => $state.composableBuilder(
       column: $state.table.id,
       builder: (column, joinBuilders) =>
@@ -588,9 +588,9 @@ class $$TodoCategoryTableFilterComposer
   }
 }
 
-class $$TodoCategoryTableOrderingComposer
-    extends OrderingComposer<_$AppDatabase, $TodoCategoryTable> {
-  $$TodoCategoryTableOrderingComposer(super.$state);
+class $$TodoCategoriesTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $TodoCategoriesTable> {
+  $$TodoCategoriesTableOrderingComposer(super.$state);
   ColumnOrderings<String> get id => $state.composableBuilder(
       column: $state.table.id,
       builder: (column, joinBuilders) =>
@@ -702,15 +702,15 @@ class $$TodoItemsTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
-  $$TodoCategoryTableFilterComposer get category {
-    final $$TodoCategoryTableFilterComposer composer = $state.composerBuilder(
+  $$TodoCategoriesTableFilterComposer get category {
+    final $$TodoCategoriesTableFilterComposer composer = $state.composerBuilder(
         composer: this,
         getCurrentColumn: (t) => t.category,
-        referencedTable: $state.db.todoCategory,
+        referencedTable: $state.db.todoCategories,
         getReferencedColumn: (t) => t.id,
         builder: (joinBuilder, parentComposers) =>
-            $$TodoCategoryTableFilterComposer(ComposerState($state.db,
-                $state.db.todoCategory, joinBuilder, parentComposers)));
+            $$TodoCategoriesTableFilterComposer(ComposerState($state.db,
+                $state.db.todoCategories, joinBuilder, parentComposers)));
     return composer;
   }
 }
@@ -738,15 +738,16 @@ class $$TodoItemsTableOrderingComposer
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
-  $$TodoCategoryTableOrderingComposer get category {
-    final $$TodoCategoryTableOrderingComposer composer = $state.composerBuilder(
-        composer: this,
-        getCurrentColumn: (t) => t.category,
-        referencedTable: $state.db.todoCategory,
-        getReferencedColumn: (t) => t.id,
-        builder: (joinBuilder, parentComposers) =>
-            $$TodoCategoryTableOrderingComposer(ComposerState($state.db,
-                $state.db.todoCategory, joinBuilder, parentComposers)));
+  $$TodoCategoriesTableOrderingComposer get category {
+    final $$TodoCategoriesTableOrderingComposer composer =
+        $state.composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.category,
+            referencedTable: $state.db.todoCategories,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder, parentComposers) =>
+                $$TodoCategoriesTableOrderingComposer(ComposerState($state.db,
+                    $state.db.todoCategories, joinBuilder, parentComposers)));
     return composer;
   }
 }
@@ -754,8 +755,8 @@ class $$TodoItemsTableOrderingComposer
 class _$AppDatabaseManager {
   final _$AppDatabase _db;
   _$AppDatabaseManager(this._db);
-  $$TodoCategoryTableTableManager get todoCategory =>
-      $$TodoCategoryTableTableManager(_db, _db.todoCategory);
+  $$TodoCategoriesTableTableManager get todoCategories =>
+      $$TodoCategoriesTableTableManager(_db, _db.todoCategories);
   $$TodoItemsTableTableManager get todoItems =>
       $$TodoItemsTableTableManager(_db, _db.todoItems);
 }

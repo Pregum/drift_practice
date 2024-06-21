@@ -120,7 +120,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     onPressed: () async {
                       await _createTodoItemsRelatedTodoCategory();
                     },
-                    child: const Text('任意のTodoCategoryに紐づくTodoItemsを追加'),
+                    child: const Text('特定のTodoCategoryに紐づくTodoItemsを追加'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _getTodoItemsBySpecificRelatedTodoCategory();
+                    },
+                    child: const Text('特定のTodoCategoryに紐づくTodoItemsを取得'),
                   ),
                   ElevatedButton(
                     onPressed: () async {
@@ -155,7 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
         return await Future.wait(
           [
             _driftDb.managers.todoItems.delete(),
-            _driftDb.managers.todoCategory.delete(),
+            _driftDb.managers.todoCategories.delete(),
           ],
         );
       },
@@ -167,8 +173,8 @@ class _MyHomePageState extends State<MyHomePage> {
     await _tryFunc(
       actionName: 'ランダムなTodoCategoryを追加',
       func: () async {
-        final TodoCategoryData record =
-            await _driftDb.managers.todoCategory.createReturning(
+        final TodoCategory record =
+            await _driftDb.managers.todoCategories.createReturning(
           (e) => e(description: _faker.lorem.word()),
           mode: InsertMode.insertOrReplace,
         );
@@ -216,9 +222,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _createTodoItemsRelatedTodoCategory() async {
     await _tryFunc(
-      actionName: '任意のTodoCategoryに紐づくTodoItemsを追加',
+      actionName: '特定のTodoCategoryに紐づくTodoItemsを追加',
       func: () async {
-        final randomCategory = await _driftDb.managers.todoCategory.get();
+        final randomCategory = await _driftDb.managers.todoCategories.get();
         if (randomCategory.isEmpty) {
           throw Exception('TodoCategoryが存在しません');
         }
@@ -242,7 +248,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  _createRandomTodoItems() async {
+  Future<void> _createRandomTodoItems() async {
     await _tryFunc(
       actionName: 'ランダムなTodoItemsを追加',
       func: () async {
@@ -261,5 +267,19 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _executionLogs.clear();
     });
+  }
+
+  Future<void> _getTodoItemsBySpecificRelatedTodoCategory() async {
+    await _tryFunc(
+      actionName: '特定のTodoCategoryに紐づくTodoItemsを取得',
+      func: () async {
+        final randomCategory = await _driftDb.managers.todoCategories.get();
+        if (randomCategory.isEmpty) {
+          throw Exception('TodoCategoryが存在しません');
+        }
+
+        final selectedCategory = randomCategory.first;
+      },
+    );
   }
 }
